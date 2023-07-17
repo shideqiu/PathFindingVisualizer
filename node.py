@@ -74,7 +74,7 @@ class Node:
             self.neighbors.append(node[self.row - 1][self.col])
         if self.col < self.total_rows - 1 and not node[self.row][self.col + 1].is_barrier():  # RIGHT
             self.neighbors.append(node[self.row][self.col + 1])
-        if self.row > 0 and not node[self.row][self.col - 1].is_barrier(): # LEFT
+        if self.col > 0 and not node[self.row][self.col - 1].is_barrier(): # LEFT
             self.neighbors.append(node[self.row][self.col - 1])
 
     def __lt__(self, other):
