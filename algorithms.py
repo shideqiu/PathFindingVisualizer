@@ -1,6 +1,7 @@
 from priorityQueue import PriorityQueue
 from queue import PriorityQueue as pq
 import pygame
+import time
 
 
 def manhattan_distance_heuristic(p1, p2):
@@ -155,12 +156,12 @@ class Algorithms:
         for current in path:
             steps += 1
             current.make_path()
-        self.draw()
+            self.draw()
         return steps
 
     def bi_ucs_helper(self):
         """
-        Bidirectional Search.
+        Bidirectional A star Search.
     
         Returns:
             The best path as a list from the start and goal nodes (including both).
@@ -173,7 +174,7 @@ class Algorithms:
         back_path = {self.end_node: [self.end_node]}
         explored = set()
         back_explored = set()
-    
+
         while frontier and back_frontier:
             node = frontier.pop()
             back_node = back_frontier.pop()
@@ -195,12 +196,12 @@ class Algorithms:
                         crossover = explored_node[0] + back_frontier.get(explored_node[-1])
                         if crossover < best_crossover[1]:
                             best_crossover = (explored_node[-1], crossover)
-    
+
                 if best_crossover[1] < temp:
                     return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
                 else:
                     return path[node[-1]] + list(reversed(back_path[node[-1]]))[1:]
-    
+
             if node[-1] in [element[-1] for element in back_explored]:
                 temp = node[0] + list(filter(lambda x: node[-1] in x, back_explored))[0][0]
             else:
@@ -209,7 +210,7 @@ class Algorithms:
                 back_temp = back_node[0] + list(filter(lambda x: back_node[-1] in x, explored))[0][0]
             else:
                 back_temp = float('inf')
-    
+
             if temp > back_temp:
                 for explored_node in explored:
                     if frontier.__contains__(explored_node[-1]):
@@ -220,7 +221,7 @@ class Algorithms:
                         crossover = explored_node[0] + back_frontier.get(explored_node[-1])
                         if crossover < best_crossover[1]:
                             best_crossover = (explored_node[-1], crossover)
-    
+
                 if best_crossover[1] < back_temp:
                     return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
                 else:
@@ -235,7 +236,7 @@ class Algorithms:
                         crossover = explored_node[0] + back_frontier.get(explored_node[-1])
                         if crossover < best_crossover[1]:
                             best_crossover = (explored_node[-1], crossover)
-    
+
                 if best_crossover[1] < temp:
                     return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
                 else:
@@ -250,12 +251,12 @@ class Algorithms:
                         crossover = explored_node[0] + back_frontier.get(explored_node[-1])
                         if crossover < best_crossover[1]:
                             best_crossover = (explored_node[-1], crossover)
-    
+
                 if best_crossover[1] < temp:
                     return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
                 else:
                     return path[node[-1]] + list(reversed(back_path[node[-1]]))[1:]
-    
+
             explored.add(node)
             back_explored.add(back_node)
             for child_node in node[-1].neighbors:
@@ -263,20 +264,190 @@ class Algorithms:
                     frontier.append((1 + node[0], child_node))
                     path[child_node] = path[node[-1]] + [child_node]
                     child_node.make_open()
-    
+
                 elif frontier.__contains__(child_node):
                     if frontier.remove((1 + node[0], child_node)):
                         path[child_node] = path[node[-1]] + [child_node]
-    
+
             for child_node in back_node[-1].neighbors:
-                if child_node not in [element[-1] for element in back_explored] and not back_frontier.__contains__(child_node):
+                if child_node not in [element[-1] for element in back_explored] and not back_frontier.__contains__(
+                        child_node):
                     back_frontier.append((1 + back_node[0], child_node))
                     back_path[child_node] = back_path[back_node[-1]] + [child_node]
                     child_node.make_open()
-    
+
                 elif back_frontier.__contains__(child_node):
                     if back_frontier.remove((1 + back_node[0], child_node)):
                         back_path[child_node] = back_path[back_node[-1]] + [child_node]
+            self.draw()
+            if node[-1] != self.start_node and node[-1] != self.end_node:
+                node[-1].make_closed()
+            if back_node[-1] != self.start_node and back_node[1] != self.end_node:
+                back_node[-1].make_closed()
+        return False
+
+    def bi_astar(self):
+        path = self.bidirectional_a_star_helper()
+        path.remove(self.start_node)
+        path.remove(self.end_node)
+        steps = 1
+        for current in path:
+            steps += 1
+            current.make_path()
+            self.draw()
+        return steps
+
+    def bidirectional_a_star_helper(self, heuristic=manhattan_distance_heuristic):
+        """
+        Bidirectional A*.
+
+        Returns:
+            The best path as a list from the start and goal nodes (including both).
+        """
+
+        # TODO: finish this function!
+        frontier = PriorityQueue()
+        frontier.append((heuristic(self.start_node.get_pos(), self.end_node.get_pos()),
+                         self.start_node))
+        back_frontier = PriorityQueue()
+        back_frontier.append((heuristic(self.end_node.get_pos(), self.start_node.get_pos()),
+                              self.end_node))
+        path = {self.start_node: [self.start_node]}
+        back_path = {self.end_node: [self.end_node]}
+        explored = set()
+        back_explored = set()
+
+        while frontier and back_frontier:
+            node = frontier.pop()
+            back_node = back_frontier.pop()
+            best_crossover = (0, float('inf'))
+            if node[-1] == back_node[-1]:
+                temp = node[0] - heuristic(node[-1].get_pos(), self.end_node.get_pos()) + \
+                       back_node[0] - heuristic(back_node[-1].get_pos(), self.start_node.get_pos())
+                for explored_node in explored:
+                    if frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - \
+                                    heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+                    elif back_frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    back_frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+
+                if best_crossover[1] < temp:
+                    return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
+                else:
+                    return path[node[-1]] + list(reversed(back_path[node[-1]]))[1:]
+
+            if node[-1] in [element[-1] for element in back_explored]:
+                temp = node[0] - heuristic(node[-1].get_pos(), self.end_node.get_pos()) + \
+                       list(filter(lambda x: node[-1] in x, back_explored))[0][0] - \
+                       heuristic(node[-1].get_pos(), self.start_node.get_pos())
+            else:
+                temp = float('inf')
+            if back_node[-1] in [element[-1] for element in explored]:
+                back_temp = back_node[0] - heuristic(back_node[-1].get_pos(), self.end_node.get_pos()) + \
+                           list(filter(lambda x: back_node[-1] in x, explored))[0][0] - \
+                           heuristic(back_node[-1].get_pos(), self.start_node.get_pos())
+            else:
+                back_temp = float('inf')
+
+            if temp > back_temp:
+                for explored_node in explored:
+                    if frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+                    elif back_frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    back_frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+
+                if best_crossover[1] < back_temp:
+                    return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
+                else:
+                    return path[back_node[-1]] + list(reversed(back_path[back_node[-1]]))[1:]
+
+            elif temp < back_temp:
+                for explored_node in explored:
+                    if frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos) + \
+                                    frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+                    elif back_frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    back_frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+
+                if best_crossover[1] < temp:
+                    return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
+                else:
+                    return path[node[-1]] + list(reversed(back_path[node[-1]]))[1:]
+
+            elif (temp == back_temp) and (temp < float('inf')):
+                for explored_node in explored:
+                    if frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+                    elif back_frontier.__contains__(explored_node[-1]):
+                        crossover = explored_node[0] - heuristic(explored_node[-1].get_pos(), self.end_node.get_pos()) + \
+                                    back_frontier.get(explored_node[-1]) - \
+                                    heuristic(explored_node[-1].get_pos(), self.start_node.get_pos())
+                        if crossover < best_crossover[1]:
+                            best_crossover = (explored_node[-1], crossover)
+
+                if best_crossover[1] < temp:
+                    return path[best_crossover[0]] + list(reversed(back_path[best_crossover[0]]))[1:]
+                else:
+                    return path[node[-1]] + list(reversed(back_path[node[-1]]))[1:]
+
+            explored.add(node)
+            back_explored.add(back_node)
+            for child_node in node[-1].neighbors:
+                if child_node not in [element[-1] for element in explored] and not frontier.__contains__(child_node):
+                    frontier.append((1 + node[0] -
+                                     heuristic(node[-1].get_pos(), self.end_node.get_pos()) +
+                                     heuristic(child_node.get_pos(), self.end_node.get_pos()), child_node))
+                    path[child_node] = path[node[-1]] + [child_node]
+                    child_node.make_open()
+
+                elif frontier.__contains__(child_node):
+                    if frontier.remove((1 + node[0] -
+                                        heuristic(node[-1].get_pos(), self.end_node.get_pos()) +
+                                        heuristic(child_node.get_pos(), self.end_node.get_pos()), child_node)):
+                        path[child_node] = path[node[-1]] + [child_node]
+
+            for child_node in back_node[-1].neighbors:
+                if child_node not in [element[-1] for element in back_explored] and not back_frontier.__contains__(
+                        child_node):
+                    back_frontier.append((1 + back_node[0] -
+                                          heuristic(back_node[-1].get_pos(), self.start_node.get_pos()) +
+                                          heuristic(child_node.get_pos(), self.start_node.get_pos()), child_node))
+                    back_path[child_node] = back_path[back_node[-1]] + [child_node]
+                    child_node.make_open()
+
+                elif back_frontier.__contains__(child_node):
+                    if back_frontier.remove((1 + back_node[0] -
+                                             heuristic(back_node[-1].get_pos(), self.start_node.get_pos()) +
+                                             heuristic(child_node.get_pos(), self.start_node.get_pos()), child_node)):
+                        back_path[child_node] = back_path[back_node[-1]] + [child_node]
+
             self.draw()
             if node[-1] != self.start_node and node[-1] != self.end_node:
                 node[-1].make_closed()

@@ -14,6 +14,7 @@ TIME = 0
 STEPS = 0
 pygame.display.set_caption("Path Finding Visualizer")
 
+
 def make_grid(rows, width):
     grid = []
     gap = width // rows
@@ -55,9 +56,9 @@ def draw(win, grid, rows, width, start_button, reset_button, algorithms, selecte
         text_1 = font.render(f"{algo_name} running time:", True, BLACK)
         text_2 = font.render(f"{TIME} seconds", True, BLACK)
         text_3 = font.render(f"total steps: {STEPS}", True, BLACK)
-        win.blit(text_1, (625, 550))
-        win.blit(text_2, (625, 575))
-        win.blit(text_3, (625, 600))
+        win.blit(text_1, (615, 550))
+        win.blit(text_2, (615, 575))
+        win.blit(text_3, (615, 600))
     pygame.display.update()
 
 
@@ -100,7 +101,7 @@ def main(win, width=600):
     bfs = AlgorithmSelector(650, 100, 'BFS')
     greedy = AlgorithmSelector(650, 175, 'Greedy')
     astar = AlgorithmSelector(650, 250, 'A-Star')
-    bi_ucs = AlgorithmSelector(650, 325, 'BiUCS')
+    bi_ucs = AlgorithmSelector(650, 325, 'BI-UCS')
     bi_astar = AlgorithmSelector(650, 400, 'BI A-Star')
 
     algorithms = [bfs, greedy, astar, bi_ucs, bi_astar]
