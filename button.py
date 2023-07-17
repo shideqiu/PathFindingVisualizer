@@ -10,5 +10,5 @@ class Button:
         self.rect.topleft = (x, y)
         self.clicked = False
 
-    def draw(self, surface):
-        surface.blit(self.image, (self.rect.x, self.rect.y))
+    def draw(self, win):
+        win.blit(self.image, (self.rect.x, self.rect.y))

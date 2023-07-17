@@ -1,15 +1,16 @@
 import pygame
 import math
 
+from algorithmSelector import AlgorithmSelector
 from button import Button
-from node import Node, GREY, WHITE
+from node import Node, GREY, WHITE, BLACK
 from algorithms import Algorithms
+from algorithmSelector import font
 
 WIDTH = 800
 HEIGHT = 800
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Path Finding Visualizer")
-
 
 def make_grid(rows, width):
     grid = []
@@ -30,7 +31,7 @@ def draw_grid(win, rows, width):
             pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
-def draw(win, grid, rows, width, start_button, reset_button):
+def draw(win, grid, rows, width, start_button, reset_button, algorithms):
     win.fill(WHITE)
     for row in grid:
         for node in row:
@@ -39,6 +40,13 @@ def draw(win, grid, rows, width, start_button, reset_button):
 
     start_button.draw(win)
     reset_button.draw(win)
+
+    text = font.render("Search Algorithms", True, BLACK)
+    win.blit(text, (625, 50))
+
+    for algo in algorithms:
+        algo.draw_button(win)
+
     pygame.display.update()
 
 
@@ -50,17 +58,17 @@ def get_clicked_position(pos, rows, width):
     return row, col
 
 
-def start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node):
+def start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms):
     for row in grid:
         for node in row:
             node.update_neighbors(grid)
-    algo = Algorithms(lambda: draw(win, grid, ROWS, width, start_button, reset_button),
+    algo = Algorithms(lambda: draw(win, grid, ROWS, width, start_button, reset_button, algorithms),
                       grid, start_node, end_node)
     algo.astar()
 
 
-def main(win, width=700):
-    ROWS = 50
+def main(win, width=600):
+    ROWS = 40
     grid = make_grid(ROWS, width)
 
     start_node = None
@@ -70,11 +78,18 @@ def main(win, width=700):
 
     start_img = pygame.image.load('img/start.png').convert_alpha()
     reset_img = pygame.image.load('img/reset.png').convert_alpha()
-    start_button = Button(200, 725, start_img, 1)
-    reset_button = Button(400, 725, reset_img, 1)
+    start_button = Button(150, 650, start_img, 1)
+    reset_button = Button(350, 650, reset_img, 1)
 
+    bfs = AlgorithmSelector(650, 100, 'BFS')
+    ucs = AlgorithmSelector(650, 175, 'UCS')
+    astar = AlgorithmSelector(650, 250, 'A-Star')
+    bi_ucs = AlgorithmSelector(650, 325, 'BiUCS')
+    bi_astar = AlgorithmSelector(650, 400, 'BI A-Star')
+
+    algorithms = [bfs, ucs, astar, bi_ucs, bi_astar]
     while run:
-        draw(win, grid, ROWS, width, start_button, reset_button)
+        draw(win, grid, ROWS, width, start_button, reset_button, algorithms)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -85,7 +100,7 @@ def main(win, width=700):
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_position(pos, ROWS, width)
                 if start_button.rect.collidepoint(pos) and start_node and end_node:
-                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node)
+                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms)
                 elif reset_button.rect.collidepoint(pos):
                     start_node = None
                     end_node = None
@@ -114,7 +129,7 @@ def main(win, width=700):
             # press keyboard
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and start_node and end_node:
-                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node)
+                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms)
                 if event.key == pygame.K_c:
                     start_node = None
                     end_node = None
@@ -122,4 +137,5 @@ def main(win, width=700):
     pygame.quit()
 
 
-main(WIN)
+if __name__ == "__main__":
+    main(WIN)
