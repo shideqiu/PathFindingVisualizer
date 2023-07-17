@@ -31,7 +31,7 @@ def draw_grid(win, rows, width):
             pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
-def draw(win, grid, rows, width, start_button, reset_button, algorithms):
+def draw(win, grid, rows, width, start_button, reset_button, algorithms, selected_algorithm=None):
     win.fill(WHITE)
     for row in grid:
         for node in row:
@@ -46,7 +46,9 @@ def draw(win, grid, rows, width, start_button, reset_button, algorithms):
 
     for algo in algorithms:
         algo.draw_button(win)
-
+    if selected_algorithm:
+        # algorithms.remove(selected_algorithm)
+        selected_algorithm.draw_selected(win, True)
     pygame.display.update()
 
 
@@ -58,11 +60,11 @@ def get_clicked_position(pos, rows, width):
     return row, col
 
 
-def start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms):
+def start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms, selected):
     for row in grid:
         for node in row:
             node.update_neighbors(grid)
-    algo = Algorithms(lambda: draw(win, grid, ROWS, width, start_button, reset_button, algorithms),
+    algo = Algorithms(lambda: draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected),
                       grid, start_node, end_node)
     algo.astar()
 
@@ -88,8 +90,9 @@ def main(win, width=600):
     bi_astar = AlgorithmSelector(650, 400, 'BI A-Star')
 
     algorithms = [bfs, ucs, astar, bi_ucs, bi_astar]
+    selected = bfs
     while run:
-        draw(win, grid, ROWS, width, start_button, reset_button, algorithms)
+        draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -100,11 +103,28 @@ def main(win, width=600):
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_position(pos, ROWS, width)
                 if start_button.rect.collidepoint(pos) and start_node and end_node:
-                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms)
+                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms, selected)
                 elif reset_button.rect.collidepoint(pos):
                     start_node = None
                     end_node = None
                     grid = make_grid(ROWS, width)
+
+                elif bfs.rect.collidepoint(pos):
+                    selected = bfs
+                    draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
+                elif ucs.rect.collidepoint(pos):
+                    selected = ucs
+                    draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
+                elif astar.rect.collidepoint(pos):
+                    selected = astar
+                    draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
+                elif bi_ucs.rect.collidepoint(pos):
+                    selected = bi_ucs
+                    draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
+                elif bi_astar.rect.collidepoint(pos):
+                    selected = bi_astar
+                    draw(win, grid, ROWS, width, start_button, reset_button, algorithms, selected)
+
                 elif row < ROWS and col < ROWS:
                     node = grid[row][col]
                     if not start_node and node != end_node:
@@ -120,16 +140,17 @@ def main(win, width=600):
             elif pygame.mouse.get_pressed()[2]:
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_position(pos, ROWS, width)
-                node = grid[row][col]
-                node.reset()
-                if node == start_node:
-                    start_node = None
-                elif node == end_node:
-                    end_node = None
+                if row < ROWS and col < ROWS:
+                    node = grid[row][col]
+                    node.reset()
+                    if node == start_node:
+                        start_node = None
+                    elif node == end_node:
+                        end_node = None
             # press keyboard
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and start_node and end_node:
-                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms)
+                    start(win, grid, ROWS, width, start_button, reset_button, start_node, end_node, algorithms, selected)
                 if event.key == pygame.K_c:
                     start_node = None
                     end_node = None
