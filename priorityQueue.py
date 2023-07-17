@@ -29,8 +29,6 @@ class PriorityQueue(object):
         Returns:
             The node with the highest priority.
         """
-
-        # TODO: finish this function!
         temp = heapq.heappop(self.queue)
         return temp[0], temp[2]
 
@@ -45,7 +43,6 @@ class PriorityQueue(object):
             node (tuple): The node to remove from the queue.
         """
         key = node[-1]
-
         for index in range(len(self.queue)):
             if key in self.queue[index]:
                 if node[0] < self.queue[index][0]:
@@ -57,12 +54,10 @@ class PriorityQueue(object):
 
     def __iter__(self):
         """Queue iterator."""
-
         return iter(sorted(self.queue))
 
     def __str__(self):
         """Priority Queue to string."""
-
         return 'PQ:%s' % self.queue
 
     def append(self, node):
@@ -72,8 +67,6 @@ class PriorityQueue(object):
         Args:
             node: Comparable Object to be added to the priority queue.
         """
-
-        # TODO: finish this function!
         heapq.heappush(self.queue, (node[0], self.n, node[1]))
         self.n += 1
         return None
@@ -88,7 +81,6 @@ class PriorityQueue(object):
         Returns:
             True if key is found in queue, False otherwise.
         """
-
         return key in [n[-1] for n in self.queue]
 
     def __eq__(self, other):
@@ -101,7 +93,6 @@ class PriorityQueue(object):
         Returns:
             True if the two priority queues are equivalent.
         """
-
         return self.queue == other.queue
 
     def size(self):
@@ -111,12 +102,10 @@ class PriorityQueue(object):
         Returns:
             Integer of number of items in queue.
         """
-
         return len(self.queue)
 
     def clear(self):
         """Reset queue to empty (no nodes)."""
-
         self.queue = []
 
     def top(self):
