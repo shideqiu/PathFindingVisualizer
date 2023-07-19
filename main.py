@@ -3,7 +3,7 @@ import math
 from timeit import default_timer as timer
 from algorithmSelector import AlgorithmSelector
 from button import Button
-from node import Node, GREY, WHITE, BLACK
+from node import Node, GREY, WHITE, BLACK, ORANGE, TURQUOISE
 from algorithms import Algorithms
 from algorithmSelector import font
 
@@ -46,6 +46,14 @@ def draw(win, grid, rows, width, start_button, reset_button, algorithms, selecte
 
     text = font.render("Search Algorithms", True, BLACK)
     win.blit(text, (625, 50))
+
+    pygame.draw.rect(win, ORANGE, (275, 725, 15, 15))
+    start_position = font.render("Start Position", True, BLACK)
+    win.blit(start_position, (150, 725))
+
+    pygame.draw.rect(win, TURQUOISE, (475, 725, 15, 15))
+    end_position = font.render("End Position", True, BLACK)
+    win.blit(end_position, (350, 725))
 
     for algo in algorithms:
         algo.draw_button(win)
